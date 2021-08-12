@@ -1,0 +1,7 @@
+let
+    Source = Excel.Workbook(File.Contents("E:\Users\agust\Desktop\Data.Driven Argentina\Productos\Geomarketing DDA\Bases de Datos\Google Mobility\Tablas Dim.xlsx"), null, true),
+    TablaRef_ZonasMovilidad_Sheet = Source{[Item="TablaRef_ZonasMovilidad",Kind="Sheet"]}[Data],
+    #"Promoted Headers" = Table.PromoteHeaders(TablaRef_ZonasMovilidad_Sheet, [PromoteAllScalars=true]),
+    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"Mobility Zones", type text}, {"Zona de Movilidad", type text}, {"Observaciones", type text}, {"Descripción Google (en inglés)", type text}})
+in
+    #"Changed Type"

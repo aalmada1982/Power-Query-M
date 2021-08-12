@@ -1,0 +1,9 @@
+let
+    Source = Csv.Document(Web.Contents("https://www.gstatic.com/covid19/mobility/Global_Mobility_Report.csv"),[Delimiter=",", Columns=15, Encoding=65001, QuoteStyle=QuoteStyle.None]),
+    #"Cambiar tipo" = Table.TransformColumnTypes(Source,{{"Column1", type text}, {"Column2", type text}, {"Column3", type text}, {"Column4", type text}, {"Column5", type text}, {"Column6", type text}, {"Column7", type text}, {"Column8", type text}, {"Column9", type text}, {"Column10", type text}, {"Column11", type text}, {"Column12", type text}, {"Column13", type text}, {"Column14", type text}, {"Column15", type text}}),
+    #"Promoted Headers" = Table.PromoteHeaders(#"Cambiar tipo", [PromoteAllScalars=true]),
+    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"retail_and_recreation_percent_change_from_baseline", Int64.Type}, {"grocery_and_pharmacy_percent_change_from_baseline", Int64.Type}, {"parks_percent_change_from_baseline", Int64.Type}, {"transit_stations_percent_change_from_baseline", Int64.Type}, {"workplaces_percent_change_from_baseline", Int64.Type}, {"residential_percent_change_from_baseline", Int64.Type}, {"date", type date}}),
+    #"Unpivoted Columns" = Table.UnpivotOtherColumns(#"Changed Type", {"country_region_code", "country_region", "sub_region_1", "sub_region_2", "metro_area", "iso_3166_2_code", "census_fips_code", "place_id", "date"}, "Attribute", "Value"),
+    #"Renamed Columns" = Table.RenameColumns(#"Unpivoted Columns",{{"Attribute", "Mobility_Zones"}, {"Value", "Mobility"}})
+in
+    #"Renamed Columns"

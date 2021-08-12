@@ -1,0 +1,9 @@
+let
+    Source = Excel.Workbook(File.Contents("E:\Users\agust\Desktop\Data.Driven Argentina\Productos\Geomarketing DDA\Bases de Datos\Google Mobility\Cartografía\Argentina\Tablas Dim.xlsx"), null, true),
+    AMBA_Sheet = Source{[Item="AMBA",Kind="Sheet"]}[Data],
+    #"Promoted Headers" = Table.PromoteHeaders(AMBA_Sheet, [PromoteAllScalars=true]),
+    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"country_region_code", type text}, {"country_region", type text}, {"sub_region_1", type text}, {"sub_region_2", type text}, {"metro_area", type text}, {"iso_3166_2_code", type text}, {"place_id", type text}, {"Observaciones", type text}, {"Tipo de Distrito", type text}, {"Provincia", type text}, {"Departamento", type text}, {"AMBA", type text}, {"Población 2020", type number}, {"Zona AMBA", type text}}),
+    #"Changed Type with Locale" = Table.TransformColumnTypes(#"Changed Type", {{"Ponderación", type number}}, "en-US"),
+    #"Filtered Rows" = Table.SelectRows(#"Changed Type with Locale", each ([Tipo de Distrito] = "Departamento"))
+in
+    #"Filtered Rows"
