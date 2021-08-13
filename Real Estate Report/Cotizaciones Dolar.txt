@@ -1,0 +1,14 @@
+let
+    Source = Web.BrowserContents("https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2FpzCbz-qrjk-zq5E88hHmKrAB3b9VXQrEG4pu0rW5vCfVrm0Y7ljHiedHDorSb9gb75ilo_sOOjq/pubhtml#"),
+    #"Extracted Table From Html" = Html.Table(Source, {{"Column1", "DIV[id='526005747'] > DIV.ritz.grid-container > TABLE.waffle > * > TR > :nth-child(1)"}, {"Column2", "DIV[id='526005747'] > DIV.ritz.grid-container > TABLE.waffle > * > TR > :nth-child(2)"}, {"Column3", "DIV[id='526005747'] > DIV.ritz.grid-container > TABLE.waffle > * > TR > :nth-child(3)"}, {"Column4", "DIV[id='526005747'] > DIV.ritz.grid-container > TABLE.waffle > * > TR > :nth-child(4)"}}, [RowSelector="DIV[id='526005747'] > DIV.ritz.grid-container > TABLE.waffle > * > TR"]),
+    #"Changed Type" = Table.TransformColumnTypes(#"Extracted Table From Html",{{"Column1", Int64.Type}, {"Column2", type text}, {"Column3", type text}, {"Column4", type text}}),
+    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"}),
+    #"Removed Top Rows" = Table.Skip(#"Removed Columns",1),
+    #"Promoted Headers" = Table.PromoteHeaders(#"Removed Top Rows", [PromoteAllScalars=true]),
+    #"Changed Type with Locale" = Table.TransformColumnTypes(#"Promoted Headers", {{"Mes", type date}}, "es-AR"),
+    #"Changed Type with Locale1" = Table.TransformColumnTypes(#"Changed Type with Locale", {{"Dólar Blue: Venta (ARS/USD)", type number}}, "en-US"),
+    #"Changed Type with Locale2" = Table.TransformColumnTypes(#"Changed Type with Locale1", {{"Dólar Oficial Minorista: Venta (ARS/USD)", type number}}, "en-US"),
+    #"Unpivoted Other Columns" = Table.UnpivotOtherColumns(#"Changed Type with Locale2", {"Mes"}, "Attribute", "Value"),
+    #"Renamed Columns" = Table.RenameColumns(#"Unpivoted Other Columns",{{"Attribute", "Variable"}, {"Value", "Valor"}})
+in
+    #"Renamed Columns"

@@ -1,0 +1,19 @@
+let
+    Source = Table.Combine({#"Actos Notariales CABA mmNm", #"Actos Notariales PBA mmNm"}),
+    #"Added Custom" = Table.AddColumn(Source, "Precio Promedio ARS", each ( [#"Monto (mill. ARS): Total"] * 1000000 ) / [#"Cantidad Actos: Total"]),
+    #"Added Custom1" = Table.AddColumn(#"Added Custom", "Precio Promedio ARS (media móvil 03 meses)", each ( [#"Monto (mill. ARS): Total mm3m"] * 1000000 ) / [#"Cantidad Actos: Total mm3m"]),
+    #"Added Custom2" = Table.AddColumn(#"Added Custom1", "Precio Promedio ARS (media móvil 12 meses)", each ( [#"Monto (mill. ARS): Total mm12m"] * 1000000 ) / [#"Cantidad Actos: Total mm12m"]),
+    #"Changed Type" = Table.TransformColumnTypes(#"Added Custom2",{{"Precio Promedio ARS", type number}, {"Precio Promedio ARS (media móvil 03 meses)", type number}, {"Precio Promedio ARS (media móvil 12 meses)", type number}}),
+    #"Added Custom3" = Table.AddColumn(#"Changed Type", "Precio Promedio USD Oficial", each [Precio Promedio ARS] / [#"Dólar Oficial Minorista: Venta (ARS/USD)"]),
+    #"Added Custom4" = Table.AddColumn(#"Added Custom3", "Precio Promedio USD Oficial (media móvil 03 meses)", each [#"Precio Promedio ARS (media móvil 03 meses)"] / [#"Dólar Oficial Minorista: Venta (ARS/USD) mm3m"]),
+    #"Added Custom5" = Table.AddColumn(#"Added Custom4", "Precio Promedio USD Oficial (media móvil 12 meses)", each [#"Precio Promedio ARS (media móvil 12 meses)"] / [#"Dólar Oficial Minorista: Venta mm12m"]),
+    #"Renamed Columns" = Table.RenameColumns(#"Added Custom5",{{"Dólar Oficial Minorista: Venta mm12m", "Dólar Oficial Minorista: Venta (ARS/USD) mm12m"}}),
+    #"Added Custom6" = Table.AddColumn(#"Renamed Columns", "Precio Promedio USD Blue", each [Precio Promedio ARS] / [#"Dólar Blue: Venta (ARS/USD)"]),
+    #"Added Custom7" = Table.AddColumn(#"Added Custom6", "Precio Promedio USD Blue (media móvil 03 meses)", each [#"Precio Promedio ARS (media móvil 03 meses)"] / [#"Dólar Blue: Venta (ARS/USD) mm3m"]),
+    #"Added Custom8" = Table.AddColumn(#"Added Custom7", "Precio Promedio USD Blue (media móvil 12 meses)", each [#"Precio Promedio ARS (media móvil 12 meses)"] / [#"Dólar Blue: Venta (ARS/USD) mm12m"]),
+    #"Changed Type1" = Table.TransformColumnTypes(#"Added Custom8",{{"Precio Promedio USD Oficial", type number}, {"Precio Promedio USD Oficial (media móvil 03 meses)", type number}, {"Precio Promedio USD Oficial (media móvil 12 meses)", type number}, {"Precio Promedio USD Blue", type number}, {"Precio Promedio USD Blue (media móvil 03 meses)", type number}, {"Precio Promedio USD Blue (media móvil 12 meses)", type number}}),
+    #"Renamed Columns1" = Table.RenameColumns(#"Changed Type1",{{"Cantidad Actos: Total mm3m", "Cantidad Actos: Total (media móvil 03 meses)"}, {"Monto (mill. ARS): Total mm3m", "Monto (mill. ARS): Total (media móvil 03 meses)"}, {"Cantidad Actos: Total mm12m", "Cantidad Actos: Total (media móvil 12 meses)"}, {"Monto (mill. ARS): Total mm12m", "Monto (mill. ARS): Total (media móvil 12 meses)"}, {"Dólar Blue: Venta (ARS/USD) mm3m", "Dólar Blue: Venta (media móvil 03 meses)"}, {"Dólar Oficial Minorista: Venta (ARS/USD) mm3m", "Dólar Oficial Minorista: Venta (media móvil 03 meses)"}, {"Dólar Blue: Venta (ARS/USD) mm12m", "Dólar Blue: Venta (media móvil 12 meses)"}, {"Dólar Oficial Minorista: Venta (ARS/USD) mm12m", "Dólar Oficial Minorista: Venta (media móvil 12 meses)"}}),
+    #"Unpivoted Other Columns" = Table.UnpivotOtherColumns(#"Renamed Columns1", {"Mes", "Distrito"}, "Attribute", "Value"),
+    #"Renamed Columns2" = Table.RenameColumns(#"Unpivoted Other Columns",{{"Attribute", "Variable"}, {"Value", "Valor"}})
+in
+    #"Renamed Columns2"

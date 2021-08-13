@@ -1,0 +1,16 @@
+let
+    Source = Web.BrowserContents("https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2FpzCbz-qrjk-zq5E88hHmKrAB3b9VXQrEG4pu0rW5vCfVrm0Y7ljHiedHDorSb9gb75ilo_sOOjq/pubhtml#"),
+    #"Extracted Table From Html" = Html.Table(Source, {{"Column1", "DIV[id='2060770712'] > DIV.ritz.grid-container > TABLE.waffle > * > TR > :nth-child(1)"}, {"Column2", "DIV[id='2060770712'] > DIV.ritz.grid-container > TABLE.waffle > * > TR > :nth-child(2)"}, {"Column3", "DIV[id='2060770712'] > DIV.ritz.grid-container > TABLE.waffle > * > TR > :nth-child(3)"}, {"Column4", "DIV[id='2060770712'] > DIV.ritz.grid-container > TABLE.waffle > * > TR > :nth-child(4)"}, {"Column5", "DIV[id='2060770712'] > DIV.ritz.grid-container > TABLE.waffle > * > TR > :nth-child(5)"}, {"Column6", "DIV[id='2060770712'] > DIV.ritz.grid-container > TABLE.waffle > * > TR > :nth-child(6)"}, {"Column7", "DIV[id='2060770712'] > DIV.ritz.grid-container > TABLE.waffle > * > TR > :nth-child(7)"}, {"Column8", "DIV[id='2060770712'] > DIV.ritz.grid-container > TABLE.waffle > * > TR > :nth-child(8)"}, {"Column9", "DIV[id='2060770712'] > DIV.ritz.grid-container > TABLE.waffle > * > TR > :nth-child(9)"}}, [RowSelector="DIV[id='2060770712'] > DIV.ritz.grid-container > TABLE.waffle > * > TR"]),
+    #"Changed Type" = Table.TransformColumnTypes(#"Extracted Table From Html",{{"Column1", Int64.Type}, {"Column2", type text}, {"Column3", type text}, {"Column4", type text}, {"Column5", type text}, {"Column6", type text}, {"Column7", type text}, {"Column8", type text}, {"Column9", type text}}),
+    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"}),
+    #"Removed Top Rows" = Table.Skip(#"Removed Columns",1),
+    #"Promoted Headers" = Table.PromoteHeaders(#"Removed Top Rows", [PromoteAllScalars=true]),
+    #"Changed Type1" = Table.TransformColumnTypes(#"Promoted Headers",{{"Mes", type date}, {"Distrito", type text}, {"Cantidad Actos: Compraventa", type text}, {"Monto (mill. ARS): Compraventa", type text}, {"Cantidad Actos: Hipotecas", type text}, {"Monto (mill. ARS): Hipotecas", type text}, {"Cantidad Actos: Total", type text}, {"Monto (mill. ARS): Total", type text}}),
+    #"Unpivoted Other Columns" = Table.UnpivotOtherColumns(#"Changed Type1", {"Mes", "Distrito"}, "Attribute", "Value"),
+    #"Renamed Columns" = Table.RenameColumns(#"Unpivoted Other Columns",{{"Attribute", "Variable"}, {"Value", "Valor"}}),
+    #"Merged Queries" = Table.NestedJoin(#"Renamed Columns", {"Variable"}, Referencias, {"Variable"}, "Referencias", JoinKind.LeftOuter),
+    #"Expanded Referencias" = Table.ExpandTableColumn(#"Merged Queries", "Referencias", {"Tipo de Variable", "Unidad de Medida"}, {"Tipo de Variable", "Unidad de Medida"}),
+    #"Reordered Columns" = Table.ReorderColumns(#"Expanded Referencias",{"Mes", "Distrito", "Variable", "Tipo de Variable", "Unidad de Medida", "Valor"}),
+    #"Changed Type with Locale" = Table.TransformColumnTypes(#"Reordered Columns", {{"Valor", type number}}, "en-US")
+in
+    #"Changed Type with Locale"

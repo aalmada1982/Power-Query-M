@@ -1,0 +1,4 @@
+let
+    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45W8s3PK8lXyM3MydFTcAwKtlIIyS9JzFGK1cElpaCRm5qSmaiQe3hzWWaOgoGxQm5qcWqxJvFaDI3gWmIB", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [#"Medida Monto" = _t])
+in
+    Source

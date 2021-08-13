@@ -1,0 +1,12 @@
+let
+    Source = Excel.Workbook(Web.Contents("http://www.bcra.gov.ar/Pdfs/PublicacionesEstadisticas/com3500.xls"), null, true),
+    #"TCR diario y TCNPM1" = Source{[Name="TCR diario y TCNPM"]}[Data],
+    #"Changed Type" = Table.TransformColumnTypes(#"TCR diario y TCNPM1",{{"Column1", type text}, {"Column2", type text}, {"Column3", type text}, {"Column4", type number}, {"Column5", type text}, {"Column6", type text}, {"Column7", type text}, {"Column8", type text}, {"Column9", type text}, {"Column10", type text}}),
+    #"Removed Other Columns" = Table.SelectColumns(#"Changed Type",{"Column2", "Column3"}),
+    #"Removed Top Rows" = Table.Skip(#"Removed Other Columns",5),
+    #"Renamed Columns" = Table.RenameColumns(#"Removed Top Rows",{{"Column3", "TCN Mayorista"}}),
+    #"Changed Type1" = Table.TransformColumnTypes(#"Renamed Columns",{{"Column2", type date}}),
+    #"Changed Type with Locale" = Table.TransformColumnTypes(#"Changed Type1", {{"TCN Mayorista", type number}}, "en-US"),
+    #"Renamed Columns1" = Table.RenameColumns(#"Changed Type with Locale",{{"Column2", "Fecha"}})
+in
+    #"Renamed Columns1"

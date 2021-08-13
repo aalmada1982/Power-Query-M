@@ -1,0 +1,5 @@
+let
+    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45WCilKzCtOTE7OzM9LLbZSCMkvScxRitXBLqGgkZuakpmokHt4c1lmjoKBsUJuanFqsSaxGgyN4BpiAQ==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Medida = _t]),
+    #"Renamed Columns" = Table.RenameColumns(Source,{{"Medida", "Medida Transacciones"}})
+in
+    #"Renamed Columns"

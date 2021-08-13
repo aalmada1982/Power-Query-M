@@ -1,0 +1,5 @@
+let
+    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("pZA9CoNAEIWvMmxlQJLezmiRRgL5a8RiWDcwsO6IO0mRa3kELxY3JERSBMRqGN687z2mLFWGTqjGGlIt7BPIuGk7vBsnqOKvWhuQDp1HrYmd8RNNVXGpCnbCEDVk7RrSw3H1S3odhDleBEAgtsazf9l/W+yoZTEa/cIOU868BicWtAvTP4z/yfnQW+xga28mgUt4F0Sjf3M+5qsQwkIP1DT0btzewtS4v5ImtFCQ44684AxK9QQ=", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Variable = _t, #"Tipo de Variable" = _t, #"Unidad de Medida" = _t]),
+    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Variable", type text}, {"Tipo de Variable", type text}, {"Unidad de Medida", type text}})
+in
+    #"Changed Type"

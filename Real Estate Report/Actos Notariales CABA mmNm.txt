@@ -1,0 +1,28 @@
+let
+    Source = Web.BrowserContents("https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2FpzCbz-qrjk-zq5E88hHmKrAB3b9VXQrEG4pu0rW5vCfVrm0Y7ljHiedHDorSb9gb75ilo_sOOjq/pubhtml#"),
+    #"Extracted Table From Html" = Html.Table(Source, {{"Column1", "DIV[id='2060770712'] > DIV.ritz.grid-container > TABLE.waffle > * > TR > :nth-child(1)"}, {"Column2", "DIV[id='2060770712'] > DIV.ritz.grid-container > TABLE.waffle > * > TR > :nth-child(2)"}, {"Column3", "DIV[id='2060770712'] > DIV.ritz.grid-container > TABLE.waffle > * > TR > :nth-child(3)"}, {"Column4", "DIV[id='2060770712'] > DIV.ritz.grid-container > TABLE.waffle > * > TR > :nth-child(4)"}, {"Column5", "DIV[id='2060770712'] > DIV.ritz.grid-container > TABLE.waffle > * > TR > :nth-child(5)"}, {"Column6", "DIV[id='2060770712'] > DIV.ritz.grid-container > TABLE.waffle > * > TR > :nth-child(6)"}, {"Column7", "DIV[id='2060770712'] > DIV.ritz.grid-container > TABLE.waffle > * > TR > :nth-child(7)"}, {"Column8", "DIV[id='2060770712'] > DIV.ritz.grid-container > TABLE.waffle > * > TR > :nth-child(8)"}, {"Column9", "DIV[id='2060770712'] > DIV.ritz.grid-container > TABLE.waffle > * > TR > :nth-child(9)"}}, [RowSelector="DIV[id='2060770712'] > DIV.ritz.grid-container > TABLE.waffle > * > TR"]),
+    #"Changed Type" = Table.TransformColumnTypes(#"Extracted Table From Html",{{"Column1", Int64.Type}, {"Column2", type text}, {"Column3", type text}, {"Column4", type text}, {"Column5", type text}, {"Column6", type text}, {"Column7", type text}, {"Column8", type text}, {"Column9", type text}}),
+    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"}),
+    #"Removed Top Rows" = Table.Skip(#"Removed Columns",1),
+    #"Promoted Headers" = Table.PromoteHeaders(#"Removed Top Rows", [PromoteAllScalars=true]),
+    #"Changed Type1" = Table.TransformColumnTypes(#"Promoted Headers",{{"Mes", type date}, {"Distrito", type text}, {"Cantidad Actos: Compraventa", type text}, {"Monto (mill. ARS): Compraventa", type text}, {"Cantidad Actos: Hipotecas", type text}, {"Monto (mill. ARS): Hipotecas", type text}, {"Cantidad Actos: Total", type text}, {"Monto (mill. ARS): Total", type text}}),
+    #"Changed Type with Locale" = Table.TransformColumnTypes(#"Changed Type1", {{"Cantidad Actos: Compraventa", type number}, {"Monto (mill. ARS): Compraventa", type number}, {"Cantidad Actos: Hipotecas", type number}, {"Monto (mill. ARS): Hipotecas", type number}, {"Cantidad Actos: Total", type number}, {"Monto (mill. ARS): Total", type number}}, "en-US"),
+    OriginalData = Table.RemoveColumns(#"Changed Type with Locale",{"Cantidad Actos: Compraventa", "Monto (mill. ARS): Compraventa", "Cantidad Actos: Hipotecas", "Monto (mill. ARS): Hipotecas"}),
+    #"Added Custom" = Table.AddColumn(OriginalData, "Custom", each OriginalData),
+    #"Added Custom1" = Table.AddColumn(#"Added Custom", "ListaActosTotal", each [Custom][#"Cantidad Actos: Total"]),
+    #"Added Custom2" = Table.AddColumn(#"Added Custom1", "ListaMontoTotal", each [Custom][#"Monto (mill. ARS): Total"]),
+    #"Added Index" = Table.AddIndexColumn(#"Added Custom2", "Index", -2, 1, Int64.Type),
+    #"Added Custom3" = Table.AddColumn(#"Added Index", "RangoListaActosTotalM3", each if [Index] > -1 then List.Range([ListaActosTotal], [Index], 3) else null),
+    #"Added Custom4" = Table.AddColumn(#"Added Custom3", "RangoListaMontoTotalM3", each if [Index] > -1 then List.Range([ListaMontoTotal], [Index], 3) else null),
+    #"Added Custom5" = Table.AddColumn(#"Added Custom4", "Cantidad Actos: Total mm3m", each if [Index] > -1 then List.Average([RangoListaActosTotalM3]) else null),
+    #"Added Custom6" = Table.AddColumn(#"Added Custom5", "Monto (mill. ARS): Total mm3m", each if [Index] > -1 then List.Average([RangoListaMontoTotalM3]) else null),
+    #"Added Custom7" = Table.AddColumn(#"Added Custom6", "RangoListaActosTotalM12", each if [Index] > 8 then List.Range([ListaActosTotal], [Index] - 9, 12) else null),
+    #"Added Custom8" = Table.AddColumn(#"Added Custom7", "RangoListaMontoTotalM12", each if [Index] > 8 then List.Range([ListaMontoTotal], [Index] - 9, 12) else null),
+    #"Added Custom9" = Table.AddColumn(#"Added Custom8", "Cantidad Actos: Total mm12m", each if [Index] > 8 then List.Average([RangoListaActosTotalM12]) else null),
+    #"Added Custom10" = Table.AddColumn(#"Added Custom9", "Monto (mill. ARS): Total mm12m", each if [Index] > 8 then List.Average([RangoListaMontoTotalM12]) else null),
+    #"Removed Columns1" = Table.RemoveColumns(#"Added Custom10",{"Custom", "ListaActosTotal", "ListaMontoTotal", "Index", "RangoListaActosTotalM3", "RangoListaMontoTotalM3", "RangoListaActosTotalM12", "RangoListaMontoTotalM12"}),
+    #"Changed Type2" = Table.TransformColumnTypes(#"Removed Columns1",{{"Cantidad Actos: Total mm3m", type number}, {"Monto (mill. ARS): Total mm3m", type number}, {"Cantidad Actos: Total mm12m", type number}, {"Monto (mill. ARS): Total mm12m", type number}}),
+    #"Merged Queries" = Table.NestedJoin(#"Changed Type2", {"Mes"}, #"Cotizaciones Dolar mmNm", {"Mes"}, "Cotizaciones Dolar mmNm", JoinKind.LeftOuter),
+    #"Expanded Cotizaciones Dolar mmNm" = Table.ExpandTableColumn(#"Merged Queries", "Cotizaciones Dolar mmNm", {"Dólar Blue: Venta (ARS/USD)", "Dólar Oficial Minorista: Venta (ARS/USD)", "Dólar Blue: Venta (ARS/USD) mm3m", "Dólar Oficial Minorista: Venta (ARS/USD) mm3m", "Dólar Blue: Venta (ARS/USD) mm12m", "Dólar Oficial Minorista: Venta mm12m"}, {"Dólar Blue: Venta (ARS/USD)", "Dólar Oficial Minorista: Venta (ARS/USD)", "Dólar Blue: Venta (ARS/USD) mm3m", "Dólar Oficial Minorista: Venta (ARS/USD) mm3m", "Dólar Blue: Venta (ARS/USD) mm12m", "Dólar Oficial Minorista: Venta mm12m"})
+in
+    #"Expanded Cotizaciones Dolar mmNm"

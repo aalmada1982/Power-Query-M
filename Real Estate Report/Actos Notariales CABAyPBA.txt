@@ -1,0 +1,4 @@
+let
+    Source = Table.Combine({#"Actos Notariales CABA", #"Actos Notariales PBA"})
+in
+    Source
